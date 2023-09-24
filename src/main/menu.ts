@@ -5,6 +5,7 @@ import {
   BrowserWindow,
   MenuItemConstructorOptions,
 } from 'electron';
+import path from 'path';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -198,8 +199,14 @@ export default class MenuBuilder {
         label: '&File',
         submenu: [
           {
-            label: '&Open',
+            label: '&OpenPlugin',
             accelerator: 'Ctrl+O',
+            click: () => {
+              const pluginsDir = app.isPackaged
+                ? process.resourcesPath
+                : path.join(__dirname, '../../plugins');
+              shell.openPath(pluginsDir);
+            },
           },
           {
             label: '&Close',
@@ -282,7 +289,7 @@ export default class MenuBuilder {
             },
           },
         ],
-      },
+      }
     ];
 
     return templateDefault;

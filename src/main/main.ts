@@ -9,11 +9,14 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
+import fs from 'fs';
 import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
-import { resolveHtmlPath } from './util';
+import { loadPlugin, resolveHtmlPath } from './util';
+import { jsonString, parsedObj } from '../utils';
+import WokerMapPool from './wokerPool';
 
 class AppUpdater {
   constructor() {
@@ -26,9 +29,39 @@ class AppUpdater {
 let mainWindow: BrowserWindow | null = null;
 
 ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
+  event.reply('ipc-example', '1111');
+});
+
+ipcMain.on('get-plugins', async (event) => {
+  // LOADING PLUGIN
+  try {
+    loadPlugin((data) => event.reply('get-plugins', jsonString(data)));
+  } catch (error) {
+    console.log(error);
+  }
+});
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ipcMain.on('do-task', async (event, info) => {
+  // LOADING PLUGIN
+  try {
+    if (info.type === 'init') {
+      const listPlugin = parsedObj(info.data);
+      listPlugin.map((plugin: any) => WokerMapPool.addWorker(plugin));
+    }
+    if (info.type === 'update') {
+      // 移除之前的重新处理
+      const data = parsedObj(info.data);
+      WokerMapPool.removeById(data.id);
+      setTimeout(() => WokerMapPool.addWorker(data), 3000);
+    }
+    if (info.type === 'add') {
+      console.log('add');
+      const d = parsedObj(info.data);
+      WokerMapPool.addWorker(d);
+    }
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 if (process.env.NODE_ENV === 'production') {

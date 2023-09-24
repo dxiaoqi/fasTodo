@@ -25,6 +25,9 @@ const configuration: webpack.Configuration = {
   entry: {
     main: path.join(webpackPaths.srcMainPath, 'main.ts'),
     preload: path.join(webpackPaths.srcMainPath, 'preload.ts'),
+    util: path.join(webpackPaths.srcMainPath, 'util.ts'),
+    wokerPool: path.join(webpackPaths.srcMainPath, 'wokerPool.ts'),
+    worker: path.join(webpackPaths.srcMainPath, 'worker.js'),
   },
 
   output: {
@@ -68,7 +71,9 @@ const configuration: webpack.Configuration = {
       'process.type': '"browser"',
     }),
   ],
-
+  externals: {
+    'node-notifier': 'commonjs node-notifier',
+  },
   /**
    * Disables webpack processing of __dirname and __filename.
    * If you run the bundle in node.js it falls back to these values of node.js.
